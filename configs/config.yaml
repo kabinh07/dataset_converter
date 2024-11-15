@@ -2,3 +2,6 @@ annotation_tool:
   type: LabelStudio
   api_url: https://labels.dev-polygontech.xyz/
   token: 25848b56cd50c41ee03dce14d9aed08e63df8f67
+
+converter:
+  type: EasyOCR
