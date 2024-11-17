@@ -2,18 +2,19 @@ import json
 import urllib
 import os
 import subprocess
-from PIL import Image
+from PIL import Image, ImageDraw
 import pandas as pd
 
 class EasyOCRConverter:
     def __init__(self):
-        with open('data/dataset.json', 'r', encoding='utf-8') as f:
-            self.dataset = json.load(f)
+        self.dataset = {}
         self.converted_dataset = []
         self.image_count = {}
         self.ocr_dataset = []
 
-    def create_dataset(self):
+    def transform_dataset(self):
+        with open('data/dataset.json', 'r', encoding='utf-8') as f:
+            self.dataset = json.load(f)
         self.__transfer_images()
         for data in self.converted_dataset:
             file_name = data['file_name']
@@ -42,6 +43,39 @@ class EasyOCRConverter:
         df = pd.DataFrame(self.ocr_dataset)
         df.to_csv('dataset/labels/labels.csv', index=False)
         return
+    
+    def draw_bboxes(self):
+        for data in self.converted_dataset:
+            file_name = data['file_name']
+            if not os.path.exists(f"dataset/main_images/{file_name}"):
+                continue
+            img = Image.open(f"dataset/main_images/{file_name}")
+            bboxes = [data['x'], data['y'], data['width'], data['height']]
+            new_img = self.__draw_bounding_box(img, bboxes)
+            new_img.save(f'bbox_images/{file_name}')
+            return
+
+    def __draw_bounding_box(self, image, bboxes, bbox_width=2, bbox_color = 'red'):
+        image_width, image_height = image.size
+        draw = ImageDraw.Draw(image)
+        for box in bboxes:
+            # Convert normalized coordinates to absolute pixel values
+            x_center_norm, y_center_norm, width_norm, height_norm = box
+
+            x_center = x_center_norm * image_width
+            y_center = y_center_norm * image_height
+            width = width_norm * image_width
+            height = height_norm * image_height
+            
+            # Calculate top-left and bottom-right coordinates of the bounding box
+            x_min = int(x_center - width / 2)
+            y_min = int(y_center - height / 2)
+            x_max = int(x_center + width / 2)
+            y_max = int(y_center + height / 2)
+
+            draw.rectangle([x_min, y_min, x_max, y_max], outline=bbox_color, width=bbox_width)
+        return image
+
 
     def __crop_segments(self, image, bboxes, name): 
         x1, y1, x2, y2 = self.__xywh_to_xyxy(bboxes, image.size)

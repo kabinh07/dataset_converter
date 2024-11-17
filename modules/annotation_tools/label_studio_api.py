@@ -11,10 +11,13 @@ class LabelStudioAPI:
         self.headers = {'Authorization': f'Token {token}'}
         self.json_headers = {'Authorization': f'Token {token}', 'Content-Type': 'application/json'}
 
-    def check_connection(self): 
+    def check_projects(self): 
         response = requests.get(self.url+'/api/projects/', headers=self.headers)
         if response.status_code == 200:
             print(f"Successfully connected.")
+        else:
+            print(f"Failed to connect. Status Code: {response.status_code}")
+            return
         projects = response.json()
         print(f"projects:")
         for project in projects['results']:
