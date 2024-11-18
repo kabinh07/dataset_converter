@@ -2,7 +2,7 @@ import json
 import urllib
 import os
 import subprocess
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 import pandas as pd
 
 class EasyOCRConverter:
@@ -28,7 +28,7 @@ class EasyOCRConverter:
                 self.image_count[file_name] = count
             img = Image.open(f"dataset/main_images/{file_name}")
             bboxes = [data['x'], data['y'], data['width'], data['height']]
-            text = data['text']
+            text = data['text'][0]
             try:
                 new_file_name = f"{file_name.split('.')[0]}_{self.image_count[file_name]}.{file_name.split('.')[-1]}"
                 self.__crop_segments(img, bboxes, new_file_name)
@@ -44,40 +44,71 @@ class EasyOCRConverter:
         df.to_csv('dataset/labels/labels.csv', index=False)
         return
     
-    def draw_bboxes(self):
+    def draw_labels(self, add_text = True, text_size = 16, text_color = 'black', text_bg = 'white'):
+        with open('data/converted_dataset.json', 'r') as f:
+            self.converted_dataset = json.load(f)
         for data in self.converted_dataset:
             file_name = data['file_name']
             if not os.path.exists(f"dataset/main_images/{file_name}"):
                 continue
             img = Image.open(f"dataset/main_images/{file_name}")
+            img_w, img_h = img.size
+            img_sizes = [img_w, img_h]
             bboxes = [data['x'], data['y'], data['width'], data['height']]
+            text = data['text'][0]
             new_img = self.__draw_bounding_box(img, bboxes)
+            if add_text:
+                font = ImageFont.truetype('fonts/kalpurush.ttf', text_size)
+                text_image = self.__fit_text_in_white_background(text, img_sizes, font, text_bg, text_color)
+                new_img = self.__collage_image(new_img, text_image)
             new_img.save(f'bbox_images/{file_name}')
-            return
+        return
+    
+    def __collage_image(self, img1, img2, orientation='horizontal'):
+        # Resize images to the same height or width based on orientation
+        if orientation == 'horizontal':
+            # Resize to the same height
+            img1 = img1.resize((img1.width, img2.height))
+            img2 = img2.resize((img2.width, img1.height))
+            # Create a blank image wide enough to fit both images
+            collage_width = img1.width + img2.width
+            collage_height = img1.height
+        elif orientation == 'vertical':
+            # Resize to the same width
+            img1 = img1.resize((img2.width, img1.height))
+            img2 = img2.resize((img2.width, img2.height))
+            # Create a blank image tall enough to fit both images
+            collage_width = img1.width
+            collage_height = img1.height + img2.height
+        else:
+            raise ValueError("Invalid orientation. Choose 'horizontal' or 'vertical'.")
+
+        collage = Image.new("RGB", (collage_width, collage_height), "white")
+        
+        # Paste the images onto the collage
+        if orientation == 'horizontal':
+            collage.paste(img1, (0, 0))
+            collage.paste(img2, (img1.width, 0))
+        else:
+            collage.paste(img1, (0, 0))
+            collage.paste(img2, (0, img1.height))
+        
+        return collage
+        
+    def __fit_text_in_white_background(self, text, img_sizes, font, background, text_color):
+        img = Image.new("RGB", (img_sizes[0], img_sizes[1]), background)
+        draw = ImageDraw.Draw(img)
+        middle_points = (5, img_sizes[1]/2)
+        draw.text(middle_points, str(text), font=font, fill=text_color)
+        return img
 
     def __draw_bounding_box(self, image, bboxes, bbox_width=2, bbox_color = 'red'):
-        image_width, image_height = image.size
         draw = ImageDraw.Draw(image)
-        for box in bboxes:
-            # Convert normalized coordinates to absolute pixel values
-            x_center_norm, y_center_norm, width_norm, height_norm = box
-
-            x_center = x_center_norm * image_width
-            y_center = y_center_norm * image_height
-            width = width_norm * image_width
-            height = height_norm * image_height
-            
-            # Calculate top-left and bottom-right coordinates of the bounding box
-            x_min = int(x_center - width / 2)
-            y_min = int(y_center - height / 2)
-            x_max = int(x_center + width / 2)
-            y_max = int(y_center + height / 2)
-
-            draw.rectangle([x_min, y_min, x_max, y_max], outline=bbox_color, width=bbox_width)
+        x_min, y_min, x_max, y_max = self.__xywh_to_xyxy(bboxes, image.size)
+        draw.rectangle([x_min, y_min, x_max, y_max], outline=bbox_color, width=bbox_width)
         return image
 
-
-    def __crop_segments(self, image, bboxes, name): 
+    def __crop_segments(self, image, bboxes, name):
         x1, y1, x2, y2 = self.__xywh_to_xyxy(bboxes, image.size)
         crop_img = image.crop((x1, y1, x2, y2))
         path = f'dataset/images/{name}'
@@ -106,8 +137,10 @@ class EasyOCRConverter:
             os.mkdir('dataset/main_images')
         for data in self.converted_dataset:
             if not os.path.exists(f"main_files/images/{data['file_name']}"):
-                self.__image_downloader(data['image_link'])
-            else:
+                downloaded = self.__image_downloader(data['image_link'])
+                if not downloaded:
+                    continue
+            if not os.path.exists(f"dataset/main_images/{data['file_name']}"):
                 subprocess.run(['cp', f"main_files/images/{data['file_name']}", "dataset/main_images"])
         return
 
@@ -116,11 +149,12 @@ class EasyOCRConverter:
             url = 'https://'+url
         try:
             file_name = url.split('/')[-1]
-            if not os.path.exists(f"dataset/images/{file_name}"):
-                urllib.request.urlretrieve(url, f"dataset/images/{file_name}")
+            urllib.request.urlretrieve(url, f"dataset/images/{file_name}")
+            return True
+        
         except Exception as e:
-            print('Link is not downloadable.')
-        return
+            print(f'{url} is not downloadable.')
+            return False
 
     def __converter(self):
         for ann in self.dataset:
@@ -132,4 +166,6 @@ class EasyOCRConverter:
                     row['file_name'] = file
                     row['image_link'] = image_link
                     self.converted_dataset.append(row)
+        with open('data/converted_dataset.json', 'w') as f:
+            json.dump(self.converted_dataset, f)
         return

@@ -11,18 +11,25 @@ def main():
     api = API(config)
     parser = argparse.ArgumentParser()
     parser.add_argument("method", type=str, help="type checkprojects to see the availbale projects\ntype download to download dataset\ntype createdataset to build images and labels from downloaded datset\ntype drawbbox to draw bbox on images and save them")
+    parser.add_argument("--project", type=int, help="type your project id")
     args = parser.parse_args()
 
+    project_id = None
+
     if args.method == 'download':
-        api.download_dataset()
+        if not args.project:
+            print("please add project id")
+            return
+        project_id = args.project
+        api.download_dataset(project_id)
 
     elif args.method == 'checkprojects':
         api.print_project_list()
     
-    elif args.method == 'createdataset':
+    elif args.method == 'build':
         api.build_dataset()
 
-    elif args.method == 'drawbbox':
+    elif args.method == 'draw':
         api.draw_bounding_boxes()
     
     else:

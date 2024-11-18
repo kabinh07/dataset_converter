@@ -24,8 +24,8 @@ class API:
         self.anntator.check_projects()
         return
     
-    def download_dataset(self):
-        self.anntator.get_json_dataset()
+    def download_dataset(self, project_id):
+        self.anntator.get_json_dataset(project_id)
         return
     
     def build_dataset(self):
@@ -33,5 +33,5 @@ class API:
         return
     
     def draw_bounding_boxes(self):
-        self.converter.draw_bboxes()
+        self.converter.draw_labels()
         return
