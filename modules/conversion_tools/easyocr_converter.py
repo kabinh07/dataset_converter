@@ -45,6 +45,7 @@ class EasyOCRConverter:
         return
     
     def draw_labels(self, add_text = True, text_size = 16, text_color = 'black', text_bg = 'white'):
+        self.image_count = {}
         with open('data/converted_dataset.json', 'r') as f:
             self.converted_dataset = json.load(f)
         for data in self.converted_dataset:
@@ -55,13 +56,19 @@ class EasyOCRConverter:
             img_w, img_h = img.size
             img_sizes = [img_w, img_h]
             bboxes = [data['x'], data['y'], data['width'], data['height']]
-            text = data['text'][0]
+            text = f"Task id: {data['task_id']}\n{data['text'][0]}"
             new_img = self.__draw_bounding_box(img, bboxes)
             if add_text:
                 font = ImageFont.truetype('fonts/kalpurush.ttf', text_size)
                 text_image = self.__fit_text_in_white_background(text, img_sizes, font, text_bg, text_color)
                 new_img = self.__collage_image(new_img, text_image)
-            new_img.save(f'bbox_images/{file_name}')
+            if not file_name in self.image_count:
+                self.image_count[file_name] = 0
+            else:
+                value = self.image_count[file_name]
+                value += 1
+                self.image_count[file_name] = value
+            new_img.save(f'bbox_images/{file_name.split('.')[0]}_{self.image_count[file_name]}.jpg')
         return
     
     def __collage_image(self, img1, img2, orientation='horizontal'):
@@ -158,11 +165,13 @@ class EasyOCRConverter:
 
     def __converter(self):
         for ann in self.dataset:
+            task_id = ann['id']
             image_link = ann['data']['image']
             file = image_link.split('/')[-1]
             for result in ann['annotations'][0]['result']:
                 if result['type'] == 'textarea':
                     row = result['value']
+                    row['task_id'] = task_id
                     row['file_name'] = file
                     row['image_link'] = image_link
                     self.converted_dataset.append(row)
