@@ -1,5 +1,4 @@
 from modules.api import API
-import os
 import yaml
 from addict import Dict
 import argparse
@@ -28,6 +27,9 @@ def main():
     
     elif args.method == 'build':
         api.build_dataset()
+    
+    elif args.method == 'delete':
+        api.remove_all_data()
 
     elif args.method == 'draw':
         api.draw_bounding_boxes()
@@ -35,6 +37,5 @@ def main():
     else:
         print('Invalid argument.')
     
-
 if __name__ == "__main__":
     main()

@@ -5,7 +5,7 @@ import subprocess
 from PIL import Image, ImageDraw, ImageFont
 import pandas as pd
 
-class EasyOCRConverter:
+class TextRecognizerConverter:
     def __init__(self):
         self.dataset = {}
         self.converted_dataset = []
@@ -68,7 +68,7 @@ class EasyOCRConverter:
                 value = self.image_count[file_name]
                 value += 1
                 self.image_count[file_name] = value
-            new_img.save(f'bbox_images/{file_name.split('.')[0]}_{self.image_count[file_name]}.jpg')
+            new_img.save(f'bbox_images/{str(data['task_id'])}_{self.image_count[file_name]}.jpg')
         return
     
     def __collage_image(self, img1, img2, orientation='horizontal'):

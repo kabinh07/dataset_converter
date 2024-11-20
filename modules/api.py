@@ -1,5 +1,7 @@
 from modules.annotation_tools.label_studio_api import LabelStudioAPI
-from modules.conversion_tools.easyocr_converter import EasyOCRConverter
+from modules.conversion_tools.text_recognizer import TextRecognizerConverter
+import subprocess
+import os
 
 def get_annotator(config):
     if config.type == 'LabelStudio':
@@ -10,8 +12,8 @@ def get_annotator(config):
     return api
 
 def get_converter(config):
-    if config['type'] == 'EasyOCR':
-        api = EasyOCRConverter()
+    if config['type'] == 'TextRecognizer':
+        api = TextRecognizerConverter()
     return api
 
 class API:
@@ -34,4 +36,17 @@ class API:
     
     def draw_bounding_boxes(self):
         self.converter.draw_labels()
+        return
+    
+    def remove_all_data(self):
+        if len(os.listdir('bbox_images/')):
+            subprocess.run(['rm', '-rf', 'bbox_images/*'])
+        if len(os.listdir('data/')):
+            subprocess.run(['rm', '-rf', 'data/*'])
+        if len(os.listdir('dataset/images')):
+            subprocess.run(['rm', '-rf', 'dataset/images/*'])
+        if len(os.listdir('dataset/labels')):
+            subprocess.run(['rm', '-rf', 'dataset/labels/*'])
+        if len(os.listdir('dataset/main_images')):
+            subprocess.run(['rm', '-rf', 'dataset/main_images/*'])
         return
