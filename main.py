@@ -8,13 +8,14 @@ import os
 load_dotenv()
 
 def main():
-    url = os.getenv('URL')
-    token = os.getenv('TOKEN')
     with open('configs/config.yaml', 'r') as f:
         config = Dict(yaml.safe_load(f))
-    config.annotation_tool.api_url = url
-    config.annotation_tool.token = token
-    print(config)
+    if config.annotation_tool.api_url is None:
+        url = os.getenv('URL')
+        config.annotation_tool.api_url = url
+    if config.annotation_tool.token is None:
+        token = os.getenv('TOKEN')
+        config.annotation_tool.token = token
     api = API(config)
     parser = argparse.ArgumentParser()
     parser.add_argument("method", type=str, help="type checkprojects to see the availbale projects\ntype download to download dataset\ntype createdataset to build images and labels from downloaded datset\ntype drawbbox to draw bbox on images and save them")
@@ -46,4 +47,7 @@ def main():
         print('Invalid argument.')
     
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(e)

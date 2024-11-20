@@ -4,6 +4,8 @@ dataset:
 
 annotation_tool:
   type: LabelStudio
+  api_url:
+  token: 
 
 converter:
   type: TextRecognizer
