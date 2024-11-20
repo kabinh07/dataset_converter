@@ -1,3 +1,7 @@
+dataset:
+  name: EasyOCR
+  main_files: ocr_images
+
 annotation_tool:
   type: LabelStudio
   api_url: https://labels.dev-polygontech.xyz/

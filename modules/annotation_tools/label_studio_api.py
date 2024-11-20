@@ -1,5 +1,6 @@
 import requests
 import json
+import os
 
 class LabelStudioAPI: 
     def __init__(
@@ -27,8 +28,13 @@ class LabelStudioAPI:
     def get_json_dataset(
             self, 
             project_id,
+            parent_dir,
             create_snapshot_body={"task_filter_options": {"annotated": "only"}}
             ):
+        self.parent_dir = parent_dir
+        dataset_path = os.path.join(self.parent_dir, 'json_data')
+        if not os.path.exists(dataset_path):
+            os.makedirs(dataset_path)
         response = self.__list_snapshots(project_id)
         if response.status_code == 200 and len(response.json()) != 0:
             print('Snapshot list already exist')
@@ -39,7 +45,7 @@ class LabelStudioAPI:
         self.__check_status(project_id)
         response = self.__download(project_id)
         if response.status_code == 200:
-            with open('data/dataset.json', 'w', encoding='utf-8') as f:
+            with open(os.path.join(dataset_path, 'dataset.json'), 'w', encoding='utf-8') as f:
                 json.dump(response.json(), f)
             print('Successfully saved json dataset from label studio.')
         else:

@@ -12,13 +12,18 @@ class TextRecognizerConverter:
         self.image_count = {}
         self.ocr_dataset = []
 
-    def transform_dataset(self):
-        with open('data/dataset.json', 'r', encoding='utf-8') as f:
+    def transform_dataset(self, parent_dir, main_file):
+        self.__dir_check(parent_dir, main_file)
+        dataset_path = os.path.join(self.json_data_dir, 'dataset.json')
+        if not os.path.exists(dataset_path):
+            print(f"No dataset found in {dataset_path}")
+            return
+        with open(dataset_path, 'r', encoding='utf-8') as f:
             self.dataset = json.load(f)
         self.__transfer_images()
         for data in self.converted_dataset:
             file_name = data['file_name']
-            if not os.path.exists(f"dataset/main_images/{file_name}"):
+            if not os.path.exists(os.path.join(self.dataset_main_images, file_name)):
                 continue
             if not file_name in self.image_count:
                 self.image_count[file_name] = 0
@@ -26,7 +31,7 @@ class TextRecognizerConverter:
                 count = self.image_count[file_name]
                 count += 1
                 self.image_count[file_name] = count
-            img = Image.open(f"dataset/main_images/{file_name}")
+            img = Image.open(os.path.join(self.main_file_dir, file_name))
             bboxes = [data['x'], data['y'], data['width'], data['height']]
             text = data['text'][0]
             try:
@@ -41,18 +46,20 @@ class TextRecognizerConverter:
             except Exception as e:
                 print(f"Failed to crop and convert csv file for data:\n{data}")
         df = pd.DataFrame(self.ocr_dataset)
-        df.to_csv('dataset/labels/labels.csv', index=False)
+        df.to_csv(os.path.join(self.dataset_labels, 'labels.csv'), index=False)
         return
     
-    def draw_labels(self, add_text = True, text_size = 16, text_color = 'black', text_bg = 'white'):
+    def draw_labels(self, parent_dir, main_file, add_text = True, text_size = 16, text_color = 'black', text_bg = 'white'):
+        self.__dir_check(parent_dir, main_file)
         self.image_count = {}
-        with open('data/converted_dataset.json', 'r') as f:
+        dataset_path = os.path.join(self.json_data_dir, 'converted_dataset.json')
+        with open(dataset_path, 'r') as f:
             self.converted_dataset = json.load(f)
         for data in self.converted_dataset:
             file_name = data['file_name']
-            if not os.path.exists(f"dataset/main_images/{file_name}"):
+            if not os.path.exists(os.path.join(self.dataset_main_images, file_name)):
                 continue
-            img = Image.open(f"dataset/main_images/{file_name}")
+            img = Image.open(os.path.join(self.dataset_main_images, file_name))
             img_w, img_h = img.size
             img_sizes = [img_w, img_h]
             bboxes = [data['x'], data['y'], data['width'], data['height']]
@@ -68,9 +75,27 @@ class TextRecognizerConverter:
                 value = self.image_count[file_name]
                 value += 1
                 self.image_count[file_name] = value
-            new_img.save(f'bbox_images/{str(data['task_id'])}_{self.image_count[file_name]}.jpg')
+            new_img.save(os.path.join(self.bbox_dir, f'{str(data['task_id'])}_{self.image_count[file_name]}.jpg'))
         return
     
+    def __dir_check(self, parent_dir, main_file):
+        self.parent_dir = parent_dir
+        self.main_file_dir = main_file
+        self.json_data_dir = os.path.join(self.parent_dir, 'json_data')
+        self.dataset_images = os.path.join(self.parent_dir, 'dataset/images')
+        self.dataset_labels = os.path.join(self.parent_dir, 'dataset/labels')
+        self.dataset_main_images = os.path.join(self.parent_dir, 'dataset/main_images')
+        self.bbox_dir = os.path.join(self.parent_dir, 'bbox_images')
+        if not os.path.exists(self.dataset_images):
+            os.makedirs(self.dataset_images)
+        if not os.path.exists(self.dataset_labels):
+            os.makedirs(self.dataset_labels)
+        if not os.path.exists(self.dataset_main_images):
+            os.makedirs(self.dataset_main_images)
+        if not os.path.exists(self.bbox_dir):
+            os.makedirs(self.bbox_dir)
+        return
+
     def __collage_image(self, img1, img2, orientation='horizontal'):
         # Resize images to the same height or width based on orientation
         if orientation == 'horizontal':
@@ -118,7 +143,7 @@ class TextRecognizerConverter:
     def __crop_segments(self, image, bboxes, name):
         x1, y1, x2, y2 = self.__xywh_to_xyxy(bboxes, image.size)
         crop_img = image.crop((x1, y1, x2, y2))
-        path = f'dataset/images/{name}'
+        path = os.path.join(self.dataset_images, name)
         crop_img.save(path)
         return
 
@@ -140,15 +165,13 @@ class TextRecognizerConverter:
 
     def __transfer_images(self):
         self.__converter()
-        if not os.path.exists('dataset/main_images'):
-            os.mkdir('dataset/main_images')
         for data in self.converted_dataset:
-            if not os.path.exists(f"main_files/images/{data['file_name']}"):
+            if not os.path.exists(os.path.join(self.main_file_dir, data['file_name'])):
                 downloaded = self.__image_downloader(data['image_link'])
                 if not downloaded:
                     continue
-            if not os.path.exists(f"dataset/main_images/{data['file_name']}"):
-                subprocess.run(['cp', f"main_files/images/{data['file_name']}", "dataset/main_images"])
+            if not os.path.exists(os.path.join(self.dataset_main_images, data['file_name'])):
+                subprocess.run(['cp', os.path.join(self.main_file_dir, data['file_name']), self.dataset_main_images])
         return
 
     def __image_downloader(self, url):
@@ -156,7 +179,7 @@ class TextRecognizerConverter:
             url = 'https://'+url
         try:
             file_name = url.split('/')[-1]
-            urllib.request.urlretrieve(url, f"dataset/images/{file_name}")
+            urllib.request.urlretrieve(url, os.path.join(self.dataset_main_images, file_name))
             return True
         
         except Exception as e:
@@ -175,6 +198,6 @@ class TextRecognizerConverter:
                     row['file_name'] = file
                     row['image_link'] = image_link
                     self.converted_dataset.append(row)
-        with open('data/converted_dataset.json', 'w') as f:
+        with open(os.path.join(self.json_data_dir, 'converted_dataset.json'), 'w') as f:
             json.dump(self.converted_dataset, f)
         return
