@@ -75,7 +75,7 @@ class TextRecognizerConverter:
                 value = self.image_count[file_name]
                 value += 1
                 self.image_count[file_name] = value
-            new_img.save(os.path.join(self.bbox_dir, f'{str(data['task_id'])}_{self.image_count[file_name]}.jpg'))
+            new_img.save(os.path.join(self.bbox_dir, f"{str(data['task_id'])}_{self.image_count[file_name]}.jpg"))
         return
     
     def __dir_check(self, parent_dir, main_file):
