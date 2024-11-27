@@ -1,5 +1,6 @@
 from modules.annotation_tools.label_studio_api import LabelStudioAPI
-from modules.conversion_tools.text_recognizer import TextRecognizerConverter
+from modules.conversion_tools.tools.text_recognizer import TextRecognizerConverter
+from modules.conversion_tools.tools.craft import Craft
 import subprocess
 import os
 
@@ -17,26 +18,28 @@ def struct_data_dir(config):
         print(f'Please copy files to {main_file_path}')
         return
     return parent_path, main_file_path
-
-def get_annotator(config):
-    if config.type == 'LabelStudio':
-        api = LabelStudioAPI(
-            api_url=config.api_url,
-            token=config.token
-        )
-    return api
-
-def get_converter(config):
-    if config['type'] == 'TextRecognizer':
-        api = TextRecognizerConverter()
-    return api
-
+    
 class API:
     def __init__(self, config):
         self.config = config
-        self.anntator = get_annotator(self.config.annotation_tool)
-        self.converter = get_converter(self.config.converter)
         self.parent_dir, self.main_file = struct_data_dir(self.config.dataset)
+        self.anntator = self.__get_annotator(self.config.annotation_tool)
+        self.converter = self.__get_converter(self.config.converter)
+
+    def __get_converter(self, config):
+        if config['type'] == 'TextRecognizer':
+            api = TextRecognizerConverter(self.parent_dir, self.main_file)
+        elif config['type'] == 'Craft':
+            api = Craft(self.parent_dir, self.main_file)
+        return api
+    
+    def __get_annotator(self, config):
+        if config.type == 'LabelStudio':
+            api = LabelStudioAPI(
+                api_url=config.api_url,
+                token=config.token
+            )
+        return api
 
     def print_project_list(self):
         self.anntator.check_projects()
@@ -47,11 +50,11 @@ class API:
         return
     
     def build_dataset(self):
-        self.converter.transform_dataset(self.parent_dir, self.main_file)
+        self.converter.transform_dataset()
         return
     
     def draw_bounding_boxes(self):
-        self.converter.draw_labels(self.parent_dir, self.main_file)
+        self.converter.draw_labels()
         return
     
     def remove_all_data(self):

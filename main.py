@@ -24,15 +24,15 @@ def main():
 
     project_id = None
 
-    if args.method == 'download':
+    if args.method == 'checkprojects':
+        api.print_project_list()
+    
+    elif args.method == 'download':
         if not args.project:
             print("please add project id")
             return
         project_id = args.project
         api.download_dataset(project_id)
-
-    elif args.method == 'checkprojects':
-        api.print_project_list()
     
     elif args.method == 'build':
         api.build_dataset()
@@ -50,4 +50,4 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(e)
+        print({'error': str(e)})

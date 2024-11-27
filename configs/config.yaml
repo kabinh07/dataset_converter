@@ -1,5 +1,5 @@
 dataset:
-  name: EasyOCR
+  name: Craft
   main_files: ocr_images
 
 annotation_tool:
@@ -8,4 +8,4 @@ annotation_tool:
   token: 
 
 converter:
-  type: TextRecognizer
+  type: Craft
