@@ -65,7 +65,7 @@ class Converter:
             task_id = ann['id']
             image_link = ann['data']['image']
             file = image_link.split('/')[-1]
-            for result in ann['annotations'][0]['result']:
+            for result in ann['annotations'][-1]['result']:
                 if result['type'] == 'textarea':
                     row = result['value']
                     row['task_id'] = task_id
@@ -154,7 +154,7 @@ class Converter:
             x_2 = bboxes[1]
             x_3 = bboxes[2]
             x_4 = bboxes[3]
-            
+
             draw.line([x_1, x_2], fill=bbox_color, width=bbox_width)
             draw.line([x_2, x_3], fill=bbox_color, width=bbox_width)
             draw.line([x_3, x_4], fill=bbox_color, width=bbox_width)

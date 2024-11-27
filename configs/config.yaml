@@ -1,5 +1,5 @@
 dataset:
-  name: Craft
+  name: OCR
   main_files: ocr_images
 
 annotation_tool:
@@ -8,4 +8,4 @@ annotation_tool:
   token: 
 
 converter:
-  type: Craft
+  type: TextRecognizer
