@@ -47,7 +47,8 @@ def main():
         print('Invalid argument.')
     
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        print({'error': str(e)})
+    main()
+    # try:
+    #     main()
+    # except Exception as e:
+    #     print({'error': str(e)})

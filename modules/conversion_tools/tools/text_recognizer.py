@@ -50,7 +50,7 @@ class TextRecognizerConverter(Converter):
             img, img_sizes = self.image_loader(img_path)
             bboxes = self.xywh_to_xyxy([data['x'], data['y'], data['width'], data['height']], img_sizes)
             text = f"Task id: {data['task_id']}\n{data['text'][0]}"
-            new_img = self.draw_bounding_box(img, bboxes)
+            new_img = self.draw_bounding_box(img, bboxes, 'rect')
             if add_text:
                 new_img = self.add_text_to_image(img, img_sizes, text, text_size, text_color, text_bg)
             if not file_name in self.image_count:

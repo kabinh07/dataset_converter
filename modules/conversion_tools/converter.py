@@ -130,10 +130,10 @@ class Converter:
         r_w = (width/100)*image_width
         r_h = (height/100)*image_height
 
-        top_left = [int(r_x), int(r_y)]
-        top_right = [int(r_x+r_w), int(r_y)]
-        bottom_left = [int(r_x+r_w), int(r_y+r_h)]
-        bottom_right = [int(r_x), int(r_y+r_h)]
+        top_left = (int(r_x)+1, int(r_y)+1)
+        top_right = (int(r_x+r_w)+1, int(r_y)+1)
+        bottom_left = (int(r_x+r_w)+1, int(r_y+r_h)+1)
+        bottom_right = (int(r_x)+1, int(r_y+r_h)+1)
 
         return top_left, top_right, bottom_left, bottom_right
 
@@ -144,10 +144,21 @@ class Converter:
         crop_img.save(path)
         return
     
-    def draw_bounding_box(self, image, bboxes, bbox_width=2, bbox_color = 'red'):
+    def draw_bounding_box(self, image, bboxes, method, bbox_width=2, bbox_color = 'red'):
         draw = ImageDraw.Draw(image)
-        x_min, y_min, x_max, y_max = bboxes
-        draw.rectangle([x_min, y_min, x_max, y_max], outline=bbox_color, width=bbox_width)
+        if method == 'rect':
+            x_min, y_min, x_max, y_max = bboxes
+            draw.rectangle([x_min, y_min, x_max, y_max], outline=bbox_color, width=bbox_width)
+        elif method == 'lines':
+            x_1 = bboxes[0]
+            x_2 = bboxes[1]
+            x_3 = bboxes[2]
+            x_4 = bboxes[3]
+            
+            draw.line([x_1, x_2], fill=bbox_color, width=bbox_width)
+            draw.line([x_2, x_3], fill=bbox_color, width=bbox_width)
+            draw.line([x_3, x_4], fill=bbox_color, width=bbox_width)
+            draw.line([x_4, x_1], fill=bbox_color, width=bbox_width)
         return image
     
     def __fit_text_in_white_background(self, text, img_sizes, background, text_color):
@@ -190,7 +201,7 @@ class Converter:
     
     def add_text_to_image(self, img, img_sizes, text, text_size, text_color, text_bg):
         self.font = ImageFont.truetype('fonts/kalpurush.ttf', text_size)
-        text_image = self.__fit_text_in_white_background(text, img_sizes, self.font, text_bg, text_color)
+        text_image = self.__fit_text_in_white_background(text, img_sizes, text_bg, text_color)
         new_img = self.__collage_image(img, text_image)
         return new_img
     
