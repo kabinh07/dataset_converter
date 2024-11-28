@@ -32,9 +32,7 @@ class LabelStudioAPI:
             create_snapshot_body={"task_filter_options": {"annotated": "only"}}
             ):
         self.parent_dir = parent_dir
-        dataset_path = os.path.join(self.parent_dir, 'json_data')
-        if not os.path.exists(dataset_path):
-            os.makedirs(dataset_path)
+        dataset_path = os.path.join(os.path.dirname(self.parent_dir), 'downloads')
         response = self.__list_snapshots(project_id)
         if response.status_code == 200 and len(response.json()) != 0:
             print('Snapshot list already exist')
@@ -47,7 +45,7 @@ class LabelStudioAPI:
         if response.status_code == 200:
             with open(os.path.join(dataset_path, 'dataset.json'), 'w', encoding='utf-8') as f:
                 json.dump(response.json(), f)
-            print('Successfully saved json dataset from label studio.')
+            print(f'Successfully saved json dataset from label studio in {os.path.join(dataset_path, 'dataset.json')}')
         else:
             print('Downloading issue')
         response = self.__delete_snapshot(project_id)

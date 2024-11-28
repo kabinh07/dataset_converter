@@ -5,12 +5,10 @@ import subprocess
 import os
 
 def struct_data_dir(config):
-    parent = config.name
-    main_file = config.main_files
+    parent = config.name.lower()
+    main_file = config.main_files.lower()
     parent_path = os.path.join('data', parent)
     main_file_path = os.path.join('main_files', main_file)
-    if not os.path.exists(parent_path):
-        os.makedirs(parent_path)
     if not os.path.exists(main_file_path):
         print(f"Path doesn't exist {main_file_path}")
         return

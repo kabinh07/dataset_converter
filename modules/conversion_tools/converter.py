@@ -17,6 +17,11 @@ class Converter:
         self.dataset_labels = os.path.join(self.parent_dir, 'dataset/labels')
         self.dataset_main_images = os.path.join(self.parent_dir, 'dataset/main_images')
         self.bbox_dir = os.path.join(self.parent_dir, 'bbox_images')
+        self.download_dir = os.path.join(os.path.dirname(self.parent_dir), 'downloads')
+        if not os.path.exists(self.json_data_dir):
+            os.makedirs(self.json_data_dir)
+        if not os.path.exists(self.download_dir):
+            os.makedirs(self.download_dir)
         if not os.path.exists(self.dataset_images):
             os.makedirs(self.dataset_images)
         if not os.path.exists(self.dataset_labels):
@@ -28,7 +33,7 @@ class Converter:
         return
     
     def loader(self):
-        dataset_path = os.path.join(self.json_data_dir, 'dataset.json')
+        dataset_path = os.path.join(self.download_dir, 'dataset.json')
         if not os.path.exists(dataset_path):
             print(f"No dataset found in {dataset_path}")
             return
