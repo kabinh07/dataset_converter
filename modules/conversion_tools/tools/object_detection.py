@@ -8,6 +8,7 @@ class ObjectDetection(Converter):
         super().__init__(parent_dir, main_file)
         self.yolo_dataset = {}
         self.image_count = {}
+        self.label_map = {}
 
     def transform_dataset(self):
         if not len(self.converted_dataset):
@@ -25,20 +26,24 @@ class ObjectDetection(Converter):
             img_path = os.path.join(self.dataset_main_images, file_name)
             img = Image.open(img_path)
             img_sizes = img.size
-            boxes = self.xywh_to_yolo([data['x'], data['y'], data['width'], data['height']], img_sizes)
-            text = data['text'][0]
-            single_array_boxes = []
-            for box in boxes:
-                single_array_boxes.extend(box)
-            single_array_boxes.append(text)
-            output = ','.join([str(element) for element in single_array_boxes])
-            if not file_name in self.craft_dataset:
-                self.craft_dataset[file_name] = [output]
+            boxes = self.bounding_box_converter([data['x'], data['y'], data['width'], data['height']], img_sizes)
+            text = data['rectanglelabels'][0]
+            index = 0
+            if not text in self.label_map.keys():
+                self.label_map[text] = index
+                index += 1
+            output = [self.label_map[text]]
+            output.extend(boxes)
+            if not file_name in self.yolo_dataset:
+                self.yolo_dataset[file_name] = [output]
             else:
-                value = self.craft_dataset[file_name]
+                value = self.yolo_dataset[file_name]
                 value.append(output)
-                self.craft_dataset[file_name] = value
-        for key, values in self.craft_dataset.items():
+                self.yolo_dataset[file_name] = value
+        map_path = os.path.join(os.path.dirname(self.dataset_images), 'labels.json')
+        with open(map_path, 'w') as f:
+            json.dump(self.label_map, f)
+        for key, values in self.yolo_dataset.items():
             image_path = os.path.join(self.dataset_images, key)
             text_path = os.path.join(self.dataset_labels, key.split('.')[0]+'.txt')
             self.copy_image(image_path)
@@ -55,7 +60,7 @@ class ObjectDetection(Converter):
             image_link = ann['data']['image']
             file = image_link.split('/')[-1]
             for result in ann['annotations'][-1]['result']:
-                if result['type'] == 'textarea':
+                if result['type'] == 'rectanglelabels':
                     row = result['value']
                     row['task_id'] = task_id
                     row['file_name'] = file

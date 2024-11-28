@@ -1,6 +1,6 @@
 dataset:
   name: OCR
-  main_files: ocr_images
+  main_files: vehicle_images
 
 annotation_tool:
   type: LabelStudio
@@ -8,4 +8,4 @@ annotation_tool:
   token: 
 
 converter:
-  type: TextRecognizer
+  type: ObjectDetection

@@ -1,6 +1,7 @@
 from modules.annotation_tools.label_studio_api import LabelStudioAPI
 from modules.conversion_tools.tools.text_recognizer import TextRecognizerConverter
 from modules.conversion_tools.tools.craft import Craft
+from modules.conversion_tools.tools.object_detection import ObjectDetection
 import subprocess
 import os
 
@@ -29,6 +30,8 @@ class API:
             api = TextRecognizerConverter(self.parent_dir, self.main_file)
         elif config['type'] == 'Craft':
             api = Craft(self.parent_dir, self.main_file)
+        elif config['type'] == 'ObjectDetection':
+            api = ObjectDetection(self.parent_dir, self.main_file)
         return api
     
     def __get_annotator(self, config):
