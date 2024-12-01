@@ -93,7 +93,7 @@ class Converter:
         crop_img.save(path)
         return
     
-    def draw_bounding_box(self, image, bboxes, method, bbox_width=2, bbox_color = 'red'):
+    def draw_bounding_box(self, image, bboxes, bbox_width=2, bbox_color = 'red'):
         pass
     
     def __fit_text_in_white_background(self, text, img_sizes, background, text_color):

@@ -1,5 +1,5 @@
 dataset:
-  name: OCR
+  name: vehicle
   main_files: vehicle_images
 
 annotation_tool:
