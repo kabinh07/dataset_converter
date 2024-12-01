@@ -42,6 +42,9 @@ def main():
 
     elif args.method == 'draw':
         api.draw_bounding_boxes()
+
+    elif args.method == 'test':
+        api.draw_coco()
     
     else:
         print('Invalid argument.')

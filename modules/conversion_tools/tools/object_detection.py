@@ -41,8 +41,11 @@ class ObjectDetection(Converter):
                 value.append(output)
                 self.yolo_dataset[file_name] = value
         map_path = os.path.join(os.path.dirname(self.dataset_images), 'labels.json')
+        reverse_map = {}
+        for key, value in self.label_map.items():
+            reverse_map[value] = key
         with open(map_path, 'w') as f:
-            json.dump(self.label_map, f)
+            json.dump(reverse_map, f)
         for key, values in self.yolo_dataset.items():
             image_path = os.path.join(self.dataset_images, key)
             text_path = os.path.join(self.dataset_labels, key.split('.')[0]+'.txt')

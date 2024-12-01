@@ -2,6 +2,9 @@ from modules.annotation_tools.label_studio_api import LabelStudioAPI
 from modules.conversion_tools.tools.text_recognizer import TextRecognizerConverter
 from modules.conversion_tools.tools.craft import Craft
 from modules.conversion_tools.tools.object_detection import ObjectDetection
+
+from modules.drawing_tools.tools.coco_format import COCOFormat
+
 import subprocess
 import os
 
@@ -24,6 +27,7 @@ class API:
         self.parent_dir, self.main_file = struct_data_dir(self.config.dataset)
         self.anntator = self.__get_annotator(self.config.annotation_tool)
         self.converter = self.__get_converter(self.config.converter)
+        self.drawing_tool = self.__get_drawing_tool(self.config.draw)
 
     def __get_converter(self, config):
         if config['type'] == 'TextRecognizer':
@@ -41,6 +45,11 @@ class API:
                 token=config.token
             )
         return api
+    
+    def __get_drawing_tool(self, config):
+        if config.type == 'COCO':
+            api = COCOFormat(config, self.parent_dir)
+        return api
 
     def print_project_list(self):
         self.anntator.check_projects()
@@ -56,6 +65,10 @@ class API:
     
     def draw_bounding_boxes(self):
         self.converter.draw_labels()
+        return
+    
+    def draw_coco(self):
+        self.drawing_tool.draw_labels()
         return
     
     def remove_all_data(self):
