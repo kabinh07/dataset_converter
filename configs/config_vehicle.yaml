@@ -1,0 +1,22 @@
+dataset:
+  name: vehicle
+  main_files: vehicle_images
+
+annotation_tool:
+  type: LabelStudio
+  api_url:
+  token: 
+  project_id: 10
+
+converter:
+  type: ObjectDetection
+
+draw:
+  type: COCO
+  bounding_box_width: 2
+  bounding_box_color: red
+  add_text: True
+  font_path: fonts/kalpurush.ttf
+  text_size: 64
+  text_color: black
+  text_background_color: white

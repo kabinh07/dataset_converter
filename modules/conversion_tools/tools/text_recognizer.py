@@ -5,8 +5,8 @@ from PIL import Image, ImageDraw
 from modules.conversion_tools.converter import Converter
 
 class TextRecognizerConverter(Converter):
-    def __init__(self, parent_dir, main_file):
-        super().__init__(parent_dir, main_file)
+    def __init__(self, parent_dir, main_file, project_id):
+        super().__init__(parent_dir, main_file, project_id)
         self.image_count = {}
         self.ocr_dataset = []
 
@@ -32,7 +32,9 @@ class TextRecognizerConverter(Converter):
             img_path = os.path.join(self.dataset_main_images, file_name)
             img = Image.open(img_path)
             img_sizes = img.size
-            bboxes = self.bounding_box_converter([data['x'], data['y'], data['width'], data['height']], img_sizes)
+            raw_bbox = [data['x'], data['y'], data['width'], data['height']]
+            padded_bbox = self.add_padding(raw_bbox, 0.25, 0.5)
+            bboxes = self.bounding_box_converter(padded_bbox, img_sizes)
             text = data['text'][0]
             try:
                 new_file_name = f"{file_name.split('.')[0]}_{self.image_count[file_name]}.{file_name.split('.')[-1]}"
@@ -109,7 +111,11 @@ class TextRecognizerConverter(Converter):
         x_min, y_min, x_max, y_max = bboxes
         draw.rectangle([x_min, y_min, x_max, y_max], outline=bbox_color, width=bbox_width)
         return image
-
+    
+    def add_padding(self, bbox, x_pad, y_pad):
+        x, y, w, h = bbox
+        x, y, w, h = x - x_pad, y - y_pad, w + x_pad, h + y_pad
+        return x, y, w, h
     
         
     

@@ -5,9 +5,10 @@ import urllib
 from PIL import Image, ImageDraw, ImageFont
 
 class Converter:
-    def __init__(self, parent_dir, main_file):
+    def __init__(self, parent_dir, main_file, project_id):
         self.parent_dir = parent_dir
         self.main_file_dir = main_file
+        self.project_id = project_id
         self.dataset = []
         self.converted_dataset = []
         self.__dir_check()
@@ -35,7 +36,7 @@ class Converter:
         return
     
     def __loader(self):
-        dataset_path = os.path.join(self.download_dir, 'dataset.json')
+        dataset_path = os.path.join(self.download_dir, f'project_{self.project_id}.json')
         if not os.path.exists(dataset_path):
             print(f"No dataset found in {dataset_path}")
             return
@@ -83,7 +84,7 @@ class Converter:
             subprocess.run(['cp', os.path.join(self.dataset_main_images, image_name), path])
         return
     
-    def bounding_box_converter(self, bbox, shape):
+    def bounding_box_converter(self):
         pass
     
     def crop_segments(self, image, bboxes, name):

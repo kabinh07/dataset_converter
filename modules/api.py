@@ -24,18 +24,22 @@ def struct_data_dir(config):
 class API:
     def __init__(self, config):
         self.config = config
+        self.project_id = config.annotation_tool.project_id
         self.parent_dir, self.main_file = struct_data_dir(self.config.dataset)
         self.anntator = self.__get_annotator(self.config.annotation_tool)
         self.converter = self.__get_converter(self.config.converter)
         self.drawing_tool = self.__get_drawing_tool(self.config.draw)
 
     def __get_converter(self, config):
+        if not self.project_id:
+            print("Check projects and insert project id in config file")
+            return
         if config['type'] == 'TextRecognizer':
-            api = TextRecognizerConverter(self.parent_dir, self.main_file)
+            api = TextRecognizerConverter(self.parent_dir, self.main_file, self.project_id)
         elif config['type'] == 'Craft':
-            api = Craft(self.parent_dir, self.main_file)
+            api = Craft(self.parent_dir, self.main_file, self.project_id)
         elif config['type'] == 'ObjectDetection':
-            api = ObjectDetection(self.parent_dir, self.main_file)
+            api = ObjectDetection(self.parent_dir, self.main_file, self.project_id)
         return api
     
     def __get_annotator(self, config):
@@ -55,8 +59,11 @@ class API:
         self.anntator.check_projects()
         return
     
-    def download_dataset(self, project_id):
-        self.anntator.get_json_dataset(project_id, self.parent_dir)
+    def download_dataset(self):
+        if not self.project_id:
+            print("Check projects and insert project id in config file")
+            return
+        self.anntator.get_json_dataset(self.project_id, self.parent_dir)
         return
     
     def build_dataset(self):

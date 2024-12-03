@@ -4,8 +4,8 @@ from PIL import Image, ImageDraw
 from modules.conversion_tools.converter import Converter
 
 class ObjectDetection(Converter):
-    def __init__(self, parent_dir, main_file):
-        super().__init__(parent_dir, main_file)
+    def __init__(self, parent_dir, main_file, project_id):
+        super().__init__(parent_dir, main_file, project_id)
         self.yolo_dataset = {}
         self.image_count = {}
         self.label_map = {}
@@ -97,7 +97,7 @@ class ObjectDetection(Converter):
             json.dump(self.converted_dataset, f)
         return
     
-    def bounding_box_converter(self, bbox, shape):
+    def bounding_box_converter(self, bbox, padding = 0):
         x, y, width, height = bbox
         x, y, w, h = (x + width / 2) / 100, (y + height / 2) / 100, width / 100, height / 100
         return x, y, w, h

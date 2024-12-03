@@ -4,8 +4,8 @@ from PIL import Image, ImageDraw
 from modules.conversion_tools.converter import Converter
 
 class Craft(Converter):
-    def __init__(self, parent_dir, main_file):
-        super().__init__(parent_dir, main_file)
+    def __init__(self, parent_dir, main_file, project_id):
+        super().__init__(parent_dir, main_file, project_id)
         self.craft_dataset = {}
         self.image_count = {}
     

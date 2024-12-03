@@ -1,14 +1,15 @@
 dataset:
-  name: nid_back
-  main_files: vehicle_images
+  name: ocr
+  main_files: ocr_images
 
 annotation_tool:
   type: LabelStudio
   api_url:
   token: 
+  project_id: 6
 
 converter:
-  type: ObjectDetection
+  type: TextRecognizer
 
 draw:
   type: COCO
