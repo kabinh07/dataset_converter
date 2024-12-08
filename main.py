@@ -45,6 +45,9 @@ def main():
     elif args.method == 'test':
         api.draw_coco()
     
+    elif args.method == 'counter':
+        api.obj_counter()
+    
     else:
         print('Invalid argument.')
     

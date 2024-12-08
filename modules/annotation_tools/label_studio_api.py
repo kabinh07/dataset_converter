@@ -45,7 +45,7 @@ class LabelStudioAPI:
         if response.status_code == 200:
             with open(os.path.join(dataset_path, f'project_{project_id}.json'), 'w', encoding='utf-8') as f:
                 json.dump(response.json(), f)
-            print(f'Successfully saved json dataset from label studio in {os.path.join(dataset_path, 'dataset.json')}')
+            print(f'Successfully saved json dataset from label studio in {os.path.join(dataset_path, f'project_{project_id}.json')}')
         else:
             print('Downloading issue')
         response = self.__delete_snapshot(project_id)

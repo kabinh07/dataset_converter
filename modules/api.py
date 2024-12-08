@@ -5,6 +5,8 @@ from modules.conversion_tools.tools.object_detection import ObjectDetection
 
 from modules.drawing_tools.tools.coco_format import COCOFormat
 
+from modules.counter.object_counter import ObjectCounter
+
 import subprocess
 import os
 
@@ -25,10 +27,15 @@ class API:
     def __init__(self, config):
         self.config = config
         self.project_id = config.annotation_tool.project_id
-        self.parent_dir, self.main_file = struct_data_dir(self.config.dataset)
-        self.anntator = self.__get_annotator(self.config.annotation_tool)
-        self.converter = self.__get_converter(self.config.converter)
-        self.drawing_tool = self.__get_drawing_tool(self.config.draw)
+        if self.config.dataset:
+            self.parent_dir, self.main_file = struct_data_dir(self.config.dataset)
+        if self.config.annotation_tool:
+            self.anntator = self.__get_annotator(self.config.annotation_tool)
+        if self.config.converter:
+            self.converter = self.__get_converter(self.config.converter)
+        if self.config.draw:
+            self.drawing_tool = self.__get_drawing_tool(self.config.draw)
+        self.object_counter = ObjectCounter(config)
 
     def __get_converter(self, config):
         if not self.project_id:
@@ -77,6 +84,9 @@ class API:
     def draw_coco(self):
         self.drawing_tool.draw_labels()
         return
+    
+    def obj_counter(self):
+        self.object_counter.get_object_count()
     
     def remove_all_data(self):
         if len(os.listdir('bbox_images/')):

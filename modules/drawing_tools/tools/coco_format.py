@@ -41,6 +41,8 @@ class COCOFormat(DrawImage):
                 img = Image.open(image_path)
                 img_shape = img.size
                 text = l.split(' ')[0]
+                if not int(text) == 0:
+                    continue
                 if int(text) in label_map.keys():
                     text = label_map[int(text)]
                 cordinates = l.split(' ')[1:]
