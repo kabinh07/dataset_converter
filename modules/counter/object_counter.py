@@ -8,6 +8,7 @@ class ObjectCounter:
         self.user_map_dir = config.user_map_dir
         self.user_map = {}
         self.counter = {}
+        self.image_count = {}
 
     def get_object_count(self):
         if not os.path.exists(self.dataset_path):
@@ -27,12 +28,18 @@ class ObjectCounter:
         for data in self.dataset:
             for ann in data['annotations']:
                 if not self.user_map[ann['completed_by']] in self.counter.keys():
+                    self.image_count[self.user_map[ann['completed_by']]] = 1
                     self.counter[self.user_map[ann['completed_by']]] = len(ann['result'])
                 else:
+                    image_counts = self.image_count[self.user_map[ann['completed_by']]]
+                    image_counts += 1
+                    self.image_count[self.user_map[ann['completed_by']]] = image_counts
                     value = self.counter[self.user_map[ann['completed_by']]]
                     value += len(ann['result'])
                     self.counter[self.user_map[ann['completed_by']]] = value
         with open(f'data/counts/object_counts_{self.project_id}.json', 'w') as f:
             json.dump(self.counter, f)
+        with open(f'data/counts/image_counts_{self.project_id}.json', 'w') as f:
+            json.dump(self.image_count, f)
         return
     
