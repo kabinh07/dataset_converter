@@ -2,10 +2,14 @@ from modules.drawing_tools.draw_image import DrawImage
 from PIL import Image, ImageDraw
 import json
 import os
+import supervision as sv
+import numpy as np
 
 class COCOFormat(DrawImage):
     def __init__(self, config, parent_dir):
         super().__init__(config, parent_dir)
+        self.box_annotator = sv.BoxAnnotator()
+        self.label_annotator = sv.LabelAnnotator()
         self.image_count = {}
 
     def draw_labels(self):
@@ -31,28 +35,28 @@ class COCOFormat(DrawImage):
                 label_map = json.load(f)
         for image, label in zip(images, labels):
             image_path = os.path.join(images_path, image)
-            label_list = []
             label_path = os.path.join(labels_path, label)
             with open(label_path, 'r') as f:
                 label_list = f.read().split('\n')
-            label_list = [l for l in label_list if not l == '']
-            count = 0
-            for l in label_list:
-                img = Image.open(image_path)
-                img_shape = img.size
-                text = l.split(' ')[0]
-                if not int(text) == 0:
-                    continue
-                if int(text) in label_map.keys():
-                    text = label_map[int(text)]
-                cordinates = l.split(' ')[1:]
-                coco_bbox = list(map(float, cordinates))
-                bboxes = self.bbox_converter(coco_bbox, img_shape)
-                new_image = self.draw_bounding_box(img, bboxes)
-                if self.add_text:
-                    new_image = self.add_text_to_image(img, img_shape, text)
-                new_image.save(os.path.join(drawing_path, f"{image}_{count}.jpg"))
-                count += 1
+            label_list = [list(map(float, l.split(' '))) for l in label_list if not l == '']
+            classes = np.array([int(l[0]) for l in label_list])
+            boxes = [l[1:] for l in label_list]
+            img = Image.open(image_path)
+            img_shape = img.size
+            normalized_boxes = np.array([self.bbox_converter(box, img_shape) for box in boxes])
+            for box, cls in zip(normalized_boxes, classes):
+                detections = sv.Detections(xyxy=box.reshape(1, -1), class_id=np.array([cls]))
+                img = self.box_annotator.annotate(
+                    scene=img.copy(),
+                    detections=detections
+                )
+                if label_map:
+                    img = self.label_annotator.annotate(
+                        scene=img,
+                        detections=detections,
+                        labels=[label_map[str(cls.item())]]
+                    )
+            img.save(os.path.join(drawing_path, f"{image}"))
         return
 
     def bbox_converter(self, bbox, shape):
@@ -69,10 +73,9 @@ class COCOFormat(DrawImage):
         x_max = int(x_center + width / 2)
         y_max = int(y_center + height / 2)
 
-        return x_min, y_min, x_max, y_max
+        return np.array([x_min, y_min, x_max, y_max])
     
-    def draw_bounding_box(self, image, bboxes):
-        draw = ImageDraw.Draw(image)
+    def draw_bounding_box(self, drawable_image, bboxes):
         x_min, y_min, x_max, y_max = bboxes
-        draw.rectangle([x_min, y_min, x_max, y_max], outline=self.bounding_box_color, width=self.bounding_box_width)
-        return image
+        drawable_image.rectangle([x_min, y_min, x_max, y_max], outline=self.bounding_box_color, width=self.bounding_box_width)
+        return drawable_image
