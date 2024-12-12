@@ -42,7 +42,7 @@ def main():
     elif args.method == 'draw':
         api.draw_bounding_boxes()
 
-    elif args.method == 'test':
+    elif args.method == 'annotate':
         api.draw_coco()
     
     elif args.method == 'counter':

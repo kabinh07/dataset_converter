@@ -56,7 +56,7 @@ class COCOFormat(DrawImage):
                         detections=detections,
                         labels=[label_map[str(cls.item())]]
                     )
-            img.save(os.path.join(drawing_path, f"{image}"))
+            img.save(os.path.join(drawing_path, image))
         return
 
     def bbox_converter(self, bbox, shape):
