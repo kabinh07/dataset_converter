@@ -13,6 +13,13 @@ class COCOFormat(DrawImage):
         self.image_count = {}
 
     def draw_labels(self):
+        file_task_id_path = os.path.join(self.parent_dir, 'json_data', 'file_task_id.json')
+        file_task_ids = None
+        if not os.path.exists(file_task_id_path):
+            print("Files will saved with filename")
+        else:
+            with open(file_task_id_path, 'r') as f:
+                file_task_ids = json.load(f)
         images_path = os.path.join(self.dataset_path, 'images')
         labels_path = os.path.join(self.dataset_path, 'labels')
         map_path = os.path.join(self.dataset_path, 'labels.json')
@@ -56,6 +63,8 @@ class COCOFormat(DrawImage):
                         detections=detections,
                         labels=[label_map[str(cls.item())]]
                     )
+            if file_task_ids:
+                image = f"{file_task_ids[image]}.jpg"
             img.save(os.path.join(drawing_path, image))
         return
 

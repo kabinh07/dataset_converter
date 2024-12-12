@@ -9,6 +9,7 @@ class ObjectDetection(Converter):
         self.yolo_dataset = {}
         self.image_count = {}
         self.label_map = {}
+        self.file_task_id = {}
 
     def transform_dataset(self):
         if not len(self.converted_dataset):
@@ -22,6 +23,8 @@ class ObjectDetection(Converter):
         index = 0
         for data in self.converted_dataset:
             file_name = data['file_name']
+            if not file_name in self.file_task_id.keys():
+                self.file_task_id[file_name] = data['task_id']
             if not os.path.exists(os.path.join(self.dataset_main_images, file_name)):
                 continue
             img_path = os.path.join(self.dataset_main_images, file_name)
@@ -40,6 +43,8 @@ class ObjectDetection(Converter):
                 value = self.yolo_dataset[file_name]
                 value.append(output)
                 self.yolo_dataset[file_name] = value
+        with open(os.path.join(self.json_data_dir, "file_task_id.json"), "w") as f:
+            json.dump(self.file_task_id, f)
         map_path = os.path.join(os.path.dirname(self.dataset_images), 'labels.json')
         reverse_map = {}
         for key, value in self.label_map.items():
