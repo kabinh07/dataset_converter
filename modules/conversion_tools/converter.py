@@ -146,3 +146,11 @@ class Converter:
     
     def draw_labels(self, add_text, text_size, text_color, text_bg):
         pass
+
+    def splitter(self):
+        pass
+
+    def create_path(self, path):
+        if not os.path.exists(path):
+            os.makedirs(path)
+        return

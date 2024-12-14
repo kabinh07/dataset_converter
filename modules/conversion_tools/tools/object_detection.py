@@ -2,6 +2,8 @@ import os
 import json
 from PIL import Image, ImageDraw
 from modules.conversion_tools.converter import Converter
+import random
+import subprocess
 
 class ObjectDetection(Converter):
     def __init__(self, parent_dir, main_file, project_id):
@@ -89,6 +91,8 @@ class ObjectDetection(Converter):
     def converter(self):
         for ann in self.dataset:
             task_id = ann['id']
+            # if int(task_id) in range(51512, 55811):
+            #     continue
             image_link = ann['data']['image']
             file = image_link.split('/')[-1]
             for result in ann['annotations'][-1]['result']:
@@ -128,3 +132,35 @@ class ObjectDetection(Converter):
         x_min, y_min, x_max, y_max = bboxes
         draw.rectangle([x_min, y_min, x_max, y_max], outline=bbox_color, width=bbox_width)
         return image
+    
+    def splitter(self):
+        images_path = self.dataset_images
+        labels_path = self.dataset_labels
+        images = os.listdir(images_path)
+        images = [image for image in images if '.jpg' in image or '.png' in image]
+        random.shuffle(images)
+        total_len = len(images)
+        train_range = (0, int(total_len*0.8))
+        train_images = images[train_range[0]:train_range[1]]
+        train_image_path = os.path.join(os.path.dirname(self.dataset_images), 'images/train')
+        valid_image_path = os.path.join(os.path.dirname(self.dataset_images), 'images/val')
+        train_label_path = os.path.join(os.path.dirname(self.dataset_images), 'labels/train')
+        valid_label_path = os.path.join(os.path.dirname(self.dataset_images), 'labels/val')
+        self.create_path(train_image_path)
+        self.create_path(valid_image_path)
+        self.create_path(train_label_path)
+        self.create_path(valid_label_path)
+        if len(os.listdir(train_image_path)) or len(os.listdir(valid_image_path)) or len(os.listdir(train_label_path)) or len(os.listdir(valid_label_path)):
+            print('Data already exist in splited path')
+            return
+        for image in images:
+            image_path = os.path.join(images_path, image)
+            label_path = os.path.join(labels_path, f"{image.split('.')[0]}.txt")
+            if image in train_images:
+                subprocess.run(["mv", image_path, train_image_path])
+                subprocess.run(["mv", label_path, train_label_path])
+            else:
+                subprocess.run(["mv", image_path, valid_image_path])
+                subprocess.run(["mv", label_path, valid_label_path])
+        print("Data splitted")
+        return

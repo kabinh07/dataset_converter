@@ -36,6 +36,9 @@ def main():
     elif args.method == 'build':
         api.build_dataset()
     
+    elif args.method == 'split':
+        api.split_dataset()
+    
     elif args.method == 'delete':
         api.remove_all_data()
 

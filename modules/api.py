@@ -77,6 +77,9 @@ class API:
         self.converter.transform_dataset()
         return
     
+    def split_dataset(self):
+        self.converter.splitter()
+    
     def draw_bounding_boxes(self):
         self.converter.draw_labels()
         return
