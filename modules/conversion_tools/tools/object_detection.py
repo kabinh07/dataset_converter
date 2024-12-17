@@ -34,6 +34,12 @@ class ObjectDetection(Converter):
             img_sizes = img.size
             boxes = self.bounding_box_converter([data['x'], data['y'], data['width'], data['height']], img_sizes)
             text = data['rectanglelabels'][0]
+            map_path = os.path.join(os.path.dirname(self.dataset_images), 'labels.json')
+            if os.path.exists(map_path):
+                with open(map_path, 'r') as f:
+                    reverse_map = json.load(f)
+            for key, value in reverse_map.items():
+                self.label_map[value] = key
             if not text in self.label_map.keys():
                 self.label_map[text] = index
                 index += 1
@@ -47,7 +53,6 @@ class ObjectDetection(Converter):
                 self.yolo_dataset[file_name] = value
         with open(os.path.join(self.json_data_dir, "file_task_id.json"), "w") as f:
             json.dump(self.file_task_id, f)
-        map_path = os.path.join(os.path.dirname(self.dataset_images), 'labels.json')
         reverse_map = {}
         for key, value in self.label_map.items():
             reverse_map[value] = key
@@ -91,8 +96,8 @@ class ObjectDetection(Converter):
     def converter(self):
         for ann in self.dataset:
             task_id = ann['id']
-            # if int(task_id) in range(51512, 55811):
-            #     continue
+            if int(task_id) in range(51612, 51645) or int(task_id) in range(52612, 52747) or int(task_id) in range(54979, 55811) or int(task_id) in range(46701, 46800):
+                continue
             image_link = ann['data']['image']
             file = image_link.split('/')[-1]
             for result in ann['annotations'][-1]['result']:

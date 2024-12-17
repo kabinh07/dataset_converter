@@ -3,12 +3,14 @@ import json
 import pandas as pd
 from PIL import Image, ImageDraw
 from modules.conversion_tools.converter import Converter
+import re
 
 class TextRecognizerConverter(Converter):
     def __init__(self, parent_dir, main_file, project_id):
         super().__init__(parent_dir, main_file, project_id)
         self.image_count = {}
         self.ocr_dataset = []
+        self.out_chars = []
 
     def transform_dataset(self):
         if not len(self.converted_dataset):
@@ -36,6 +38,10 @@ class TextRecognizerConverter(Converter):
             padded_bbox = self.add_padding(raw_bbox, 0.25, 0.5)
             bboxes = self.bounding_box_converter(padded_bbox, img_sizes)
             text = data['text'][0]
+            chars = "0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ।ঁংঃঅআইঈউঊঋঌএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহ়ািীুূৃেৈোৌ্ৎড়ঢ়য়০১২৩৪৫৬৭৮৯"
+            out_of_char = f'[^{chars}]'
+            if re.search(out_of_char, text):
+                self.out_chars.append(text)
             try:
                 new_file_name = f"{file_name.split('.')[0]}_{self.image_count[file_name]}.{file_name.split('.')[-1]}"
                 self.crop_segments(img, bboxes, new_file_name)
@@ -49,6 +55,8 @@ class TextRecognizerConverter(Converter):
                 print(f"Failed to crop and convert csv file for data:\n{data}")
         df = pd.DataFrame(self.ocr_dataset)
         df.to_csv(os.path.join(self.dataset_labels, 'labels.csv'), index=False)
+        with open(os.path.join(self.dataset_labels, 'out_chars.json'), 'w') as f:
+            json.dump(self.out_chars, f)
         return
     
     def draw_labels(self, add_text = True, text_size = 16, text_color = 'black', text_bg = 'white'):
