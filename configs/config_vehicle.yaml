@@ -10,6 +10,22 @@ annotation_tool:
 
 converter:
   type: ObjectDetection
+  label_map:
+    0: large_bus
+    1: medium_truck
+    2: light_truck
+    3: large_bus
+    4: minibus
+    5: microbus
+    6: utility
+    7: car/taxi
+    8: auto_rickshaw
+    9: tempo
+    10: motorcycle
+    11: bicycle
+    12: cycle_rickshaw
+    13: rickshaw_van
+    14: animal/pushcart 
 
 draw:
   type: COCO

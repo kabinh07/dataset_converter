@@ -63,8 +63,8 @@ class COCOFormat(DrawImage):
                         detections=detections,
                         labels=[label_map[str(cls.item())]]
                     )
-            if file_task_ids:
-                image = f"{file_task_ids[image]}.jpg"
+            # if file_task_ids:
+            #     image = f"{file_task_ids[image]}.jpg"
             img.save(os.path.join(drawing_path, image))
         return
 

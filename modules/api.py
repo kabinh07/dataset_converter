@@ -46,7 +46,7 @@ class API:
         elif config['type'] == 'Craft':
             api = Craft(self.parent_dir, self.main_file, self.project_id)
         elif config['type'] == 'ObjectDetection':
-            api = ObjectDetection(self.parent_dir, self.main_file, self.project_id)
+            api = ObjectDetection(self.parent_dir, self.main_file, self.project_id, config['label_map'])
         return api
     
     def __get_annotator(self, config):

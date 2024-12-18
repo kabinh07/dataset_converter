@@ -6,14 +6,15 @@ import random
 import subprocess
 
 class ObjectDetection(Converter):
-    def __init__(self, parent_dir, main_file, project_id):
+    def __init__(self, parent_dir, main_file, project_id, label_map = {}):
         super().__init__(parent_dir, main_file, project_id)
         self.yolo_dataset = {}
         self.image_count = {}
-        self.label_map = {}
+        self.label_map = label_map
         self.file_task_id = {}
 
     def transform_dataset(self):
+        print(f"Label map:\n{self.label_map}")
         if not len(self.converted_dataset):
             self.converter()
         else:
@@ -35,15 +36,10 @@ class ObjectDetection(Converter):
             boxes = self.bounding_box_converter([data['x'], data['y'], data['width'], data['height']], img_sizes)
             text = data['rectanglelabels'][0]
             map_path = os.path.join(os.path.dirname(self.dataset_images), 'labels.json')
-            if os.path.exists(map_path):
-                with open(map_path, 'r') as f:
-                    reverse_map = json.load(f)
-            for key, value in reverse_map.items():
-                self.label_map[value] = key
-            if not text in self.label_map.keys():
-                self.label_map[text] = index
-                index += 1
-            output = [self.label_map[text]]
+            reverse_map = {}
+            for key, value in self.label_map.items():
+                reverse_map[value] = key
+            output = [str(reverse_map[text])]
             output.extend(boxes)
             if not file_name in self.yolo_dataset:
                 self.yolo_dataset[file_name] = [output]
@@ -53,11 +49,8 @@ class ObjectDetection(Converter):
                 self.yolo_dataset[file_name] = value
         with open(os.path.join(self.json_data_dir, "file_task_id.json"), "w") as f:
             json.dump(self.file_task_id, f)
-        reverse_map = {}
-        for key, value in self.label_map.items():
-            reverse_map[value] = key
         with open(map_path, 'w') as f:
-            json.dump(reverse_map, f)
+            json.dump(self.label_map, f)
         for key, values in self.yolo_dataset.items():
             image_path = os.path.join(self.dataset_images, key)
             text_path = os.path.join(self.dataset_labels, key.split('.')[0]+'.txt')
@@ -147,10 +140,10 @@ class ObjectDetection(Converter):
         total_len = len(images)
         train_range = (0, int(total_len*0.8))
         train_images = images[train_range[0]:train_range[1]]
-        train_image_path = os.path.join(os.path.dirname(self.dataset_images), 'images/train')
-        valid_image_path = os.path.join(os.path.dirname(self.dataset_images), 'images/val')
-        train_label_path = os.path.join(os.path.dirname(self.dataset_images), 'labels/train')
-        valid_label_path = os.path.join(os.path.dirname(self.dataset_images), 'labels/val')
+        train_image_path = os.path.join(os.path.dirname(self.dataset_images), 'train/images')
+        train_label_path = os.path.join(os.path.dirname(self.dataset_images), 'train/labels')
+        valid_image_path = os.path.join(os.path.dirname(self.dataset_images), 'val/images')
+        valid_label_path = os.path.join(os.path.dirname(self.dataset_images), 'val/labels')
         self.create_path(train_image_path)
         self.create_path(valid_image_path)
         self.create_path(train_label_path)
