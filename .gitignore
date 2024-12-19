@@ -1,0 +1,11 @@
+venv
+__pycache__
+*.json
+*.txt
+*.jpg
+*.png
+*.jpeg
+*.csv
+.env
+!requirements.txt
+*.zip
