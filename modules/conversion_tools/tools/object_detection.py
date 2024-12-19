@@ -23,7 +23,9 @@ class ObjectDetection(Converter):
             self.transfer_images()
         else:
             print(f"Images exits in {self.dataset_images}")
-        index = 0
+        reverse_map = {}
+        for key, value in self.label_map.items():
+            reverse_map[value] = key
         for data in self.converted_dataset:
             file_name = data['file_name']
             if not file_name in self.file_task_id.keys():
@@ -36,9 +38,6 @@ class ObjectDetection(Converter):
             boxes = self.bounding_box_converter([data['x'], data['y'], data['width'], data['height']], img_sizes)
             text = data['rectanglelabels'][0]
             map_path = os.path.join(os.path.dirname(self.dataset_images), 'labels.json')
-            reverse_map = {}
-            for key, value in self.label_map.items():
-                reverse_map[value] = key
             output = [str(reverse_map[text])]
             output.extend(boxes)
             if not file_name in self.yolo_dataset:
@@ -160,5 +159,7 @@ class ObjectDetection(Converter):
             else:
                 subprocess.run(["mv", image_path, valid_image_path])
                 subprocess.run(["mv", label_path, valid_label_path])
+        subprocess.run(['rm', '-r', images_path])
+        subprocess.run(['rm', '-r', labels_path])
         print("Data splitted")
         return
